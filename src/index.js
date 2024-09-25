@@ -1,85 +1,3 @@
-// const express = require('express')
-// const passport = require('passport')
-// const expressSession = require('express-session')
-// const GoogleStrategy = require('passport-google-oauth20').Strategy
-
-// const app = express()
-
-// // Session configuration
-// app.use(expressSession({
-//     secret: 'yourSecretKey', 
-//     resave: false,
-//     saveUninitialized: false,
-//     cookie: { secure: false, maxAge: 15 * 1000 } // Set to true in production (if using HTTPS)
-// }))
-
-// app.use(express.json())
-// app.use(passport.initialize())
-// app.use(passport.session())
-
-// passport.use(new GoogleStrategy({
-//     clientID: '184108133123-tb7hp2iul14qruoqbobps1smvg9jb04s.apps.googleusercontent.com',
-//     clientSecret: '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',
-//     callbackURL: 'http://localhost:3000/oauth2/redirect/google' 
-//   },
-//   function(accessToken, refreshToken, profile, cb) {
-//     const user = {
-//       profile: {
-//         id: profile.id,
-//         displayName: profile.displayName,
-//         name: profile.name,
-//         emails: profile.emails,
-//         photos: profile.photos,
-//         accessToken,
-//         refreshToken,
-//       }
-//     }
-//     return cb(null, user)
-//   }
-// ))
-
-// passport.serializeUser(function(user, cb) {
-//     cb(null, user)
-// })
-
-// passport.deserializeUser(function(obj, cb) {
-//     cb(null, obj)
-// })
-
-// // Routes
-// app.get('/login/google', passport.authenticate('google', {
-//     scope: ['profile', 'email', 'openid'],
-//     prompt: 'consent' 
-// }))
-
-// app.get('/oauth2/redirect/google',
-//   passport.authenticate('google', { failureRedirect: '/login', failureMessage: true }),
-//   function(req, res) {
-//     console.log(req.user.profile.photos)
-//     res.status(200).json(req.user) 
-//   }
-// )
-
-// app.get('/deny', (req, res) => {
-//   res.json('DENY')
-// })
-
-// app.get('/secret-data',
-//   (req, res) => {
-//     if(req.isAuthenticated()) {
-//       console.log(req.session.passport)
-//       console.log(req.sessionID)
-//       res.json(req.user)
-//     }
-
-//     res.redirect('/deny')
-// })
-
-// app.listen(3000, () => {
-//     console.log('Listening on port 3000')
-// })
-
-
 const express = require('express')
 const passport = require('passport')
 const expressSession = require('express-session')
@@ -87,12 +5,11 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy
 
 const app = express()
 
-// Session configuration
 app.use(expressSession({
     secret: 'yourSecretKey', 
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, maxAge: 1500 * 1000 } // Set to true in production (if using HTTPS)
+    cookie: { secure: false, maxAge: 15 * 1000 } 
 }))
 
 app.use(express.json())
@@ -105,15 +22,15 @@ passport.use(new GoogleStrategy({
     callbackURL: 'http://localhost:3000/oauth2/redirect/google' 
   },
   function(accessToken, refreshToken, profile, cb) {
-    // Since this is OpenID Connect, we care about the user's ID and profile info from the ID token
-
     const user = {
       profile: {
         id: profile.id,
         displayName: profile.displayName,
         name: profile.name,
         emails: profile.emails,
-        photos: profile.photos
+        photos: profile.photos,
+        accessToken,
+        refreshToken,
       }
     }
     return cb(null, user)
@@ -130,14 +47,14 @@ passport.deserializeUser(function(obj, cb) {
 
 // Routes
 app.get('/login/google', passport.authenticate('google', {
-    scope: ['openid', 'profile', 'email'],  // Add 'openid' to use OpenID Connect
-    prompt: 'consent'
+    scope: ['profile', 'email', 'openid'],
+    prompt: 'consent' 
 }))
 
 app.get('/oauth2/redirect/google',
   passport.authenticate('google', { failureRedirect: '/login', failureMessage: true }),
   function(req, res) {
-    // After successful authentication, display the user info from the ID token
+    console.log(req.user.profile.photos)
     res.status(200).json(req.user) 
   }
 )
@@ -149,6 +66,8 @@ app.get('/deny', (req, res) => {
 app.get('/secret-data',
   (req, res) => {
     if(req.isAuthenticated()) {
+      console.log(req.session.passport)
+      console.log(req.sessionID)
       res.json(req.user)
     }
 
@@ -158,8 +77,6 @@ app.get('/secret-data',
 app.listen(3000, () => {
     console.log('Listening on port 3000')
 })
-
-
 
 // // Khi chưa Logged In:
 // // 1. Gửi yêu cầu tới /login/google hiện lên trang đăng nhập bằng Gmail của Google.
